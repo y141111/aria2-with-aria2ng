@@ -54,6 +54,8 @@ services:
       - "6800:6800"
       - "19101:19101"
       - "19101:19101/udp"
+    environment:
+      RPC_SECRET: MyStrongSecret123   # 自定义 RPC 密钥，可修改
     volumes:
       - /Downloads:/downloads
 ```
@@ -77,6 +79,7 @@ docker run -d \
   -p 6800:6800 \
   -p 19101:19101 \
   -p 19101:19101/udp \
+  -e RPC_SECRET=MyStrongSecret123 \
   -v /Downloads:/downloads \
   ghcr.io/y141111/aria2-with-aria2ng:latest
 ```
@@ -90,7 +93,7 @@ docker run -d \
    ws://<宿主机IP>:6800/jsonrpc
    ```
 
-3. **Aria2 RPC 密钥** 填：
+3. **Aria2 RPC 密钥** 填部署时通过 `RPC_SECRET` 环境变量指定的值，默认：
 
    ```
    MyStrongSecret123
@@ -154,13 +157,26 @@ sudo ./start.sh
 
 ### 修改 RPC 密钥
 
-编辑 `aria2.conf` 的 `rpc-secret`，然后重新构建并启动：
+密钥通过容器环境变量 `RPC_SECRET` 指定，无需重新构建镜像。
+
+快速部署模式（compose）：
 
 ```bash
-sudo docker compose down && sudo docker compose build && sudo docker compose up -d
+# 方式一：compose 环境变量
+RPC_SECRET=新的密钥 docker compose up -d
+
+# 方式二：直接在 compose 文件的 environment.RPC_SECRET 中修改，然后重启
+docker compose up -d
 ```
 
-> 若想改为「快速部署」模式使用，需将 `docker-compose.yml` 中的 `build: .` 换成 `image: ghcr.io/y141111/aria2-with-aria2ng:latest` 并推送到 GitHub 让 CI 重新构建。
+本机构建模式：`start.sh` 同样透传 `RPC_SECRET`：
+
+```bash
+RPC_SECRET=新的密钥 sudo ./start.sh
+```
+
+> 未设置 `RPC_SECRET` 时，默认取 `aria2.conf` 中的 `rpc-secret=MyStrongSecret123`。
+> 严格模式：若想废弃配置文件里的默认值，可把 compose 的 `RPC_SECRET` 设为非空即生效。
 
 ## 端口说明
 

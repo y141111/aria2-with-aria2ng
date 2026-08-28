@@ -33,8 +33,12 @@ RUN echo 'events { worker_connections 1024; }' > /etc/nginx/nginx.conf && \
 
 COPY supervisord.conf /etc/supervisord.conf
 
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 EXPOSE 80/tcp 6800/tcp 19101/tcp 19101/udp
 
 WORKDIR /
 
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["/usr/bin/supervisord","-c","/etc/supervisord.conf"]

@@ -18,4 +18,4 @@ docker compose ps
 
 echo ""
 echo "访问地址：http://$(hostname -I | awk '{print $1}'):8080"
-echo "RPC密钥：MyStrongSecret123"
+echo "RPC密钥：${RPC_SECRET:-MyStrongSecret123}（可在启动前设置环境变量 RPC_SECRET 覆盖）"

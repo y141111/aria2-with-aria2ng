@@ -8,6 +8,8 @@ services:
       - "6800:6800"
       - "19101:19101"
       - "19101:19101/udp"
+    environment:
+      - RPC_SECRET=${RPC_SECRET:-MyStrongSecret123}
     volumes:
       - /Downloads:/downloads
 
