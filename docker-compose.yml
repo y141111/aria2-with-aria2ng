@@ -1,0 +1,13 @@
+services:
+  aria2-with-aria2ng:
+    build: .
+    container_name: aria2-with-aria2ng
+    restart: always
+    ports:
+      - "8080:80"
+      - "6800:6800"
+      - "19101:19101"
+      - "19101:19101/udp"
+    volumes:
+      - /home/wangyu/localdata:/downloads
+
