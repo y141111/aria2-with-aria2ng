@@ -52,10 +52,11 @@ services:
     ports:
       - "8080:80"
       - "6800:6800"
-      - "19101:19101"
-      - "19101:19101/udp"
+      - "${BT_PORT:-19101}:${BT_PORT:-19101}"
+      - "${BT_PORT:-19101}:${BT_PORT:-19101}/udp"
     environment:
       RPC_SECRET: 你的密钥   # 留空（不设）则不启用 RPC 密钥
+      BT_PORT: 19101         # BT/DHT 监听端口，可修改，需与上方端口映射一致
     volumes:
       - /Downloads:/downloads
 ```
@@ -80,11 +81,13 @@ docker run -d \
   -p 19101:19101 \
   -p 19101:19101/udp \
   -e RPC_SECRET=你的密钥 \
+  -e BT_PORT=19101 \
   -v /Downloads:/downloads \
   ghcr.io/y141111/aria2-with-aria2ng:latest
 ```
 
 > `-e RPC_SECRET=...` 可省略，省略即不启用 RPC 密钥（AriaNg 连接时密钥留空）。
+> `-e BT_PORT=...` 与 `-p` 的端口号要保持一致，省略时默认 19101。
 
 ### 配置 RPC 连接
 
@@ -151,7 +154,15 @@ sudo ./start.sh
 
 ### BT 监听端口
 
-`19101`（TCP + UDP）用于 BT/DHT 数据交换，已在端口映射中放开，勿在防火墙中屏蔽。
+BT/DHT 端口由环境变量 `BT_PORT` 控制（默认 `19101`），使用前需保证：
+1. 容器环境变量 `BT_PORT` 与 `aria2.conf` 的 `listen-port` / `dht-listen-port` 一致（entrypoint 会自动注入）
+2. `docker run`/`docker compose` 的端口映射与 `BT_PORT` 一致（TCP + UDP）
+3. 防火墙放行该端口
+
+```bash
+# 示例：改用 19102
+docker compose up -d   # compose 已用 ${BT_PORT:-19101}，先 BT_PORT=19102 docker compose up -d
+```
 
 ### 修改 RPC 密钥
 

@@ -14,7 +14,12 @@ else
     sed -i "/^rpc-secret=/d" "$ARIA2_CONF"
 fi
 
+BT_PORT=${BT_PORT:-19101}
+sed -i "s#^listen-port=.*#listen-port=${BT_PORT}#" "$ARIA2_CONF"
+sed -i "s#^dht-listen-port=.*#dht-listen-port=${BT_PORT}#" "$ARIA2_CONF"
+
 echo "[entrypoint] aria2 RPC 监听端口: 6800 (容器内)"
+echo "[entrypoint] BT/DHT 监听端口: ${BT_PORT} (容器内)"
 echo "[entrypoint] nginx WebUI 监听端口: 80 (容器内)"
 echo "[entrypoint] 宿主机映射: 8080 -> 80，Web 管理界面 http://<宿主机IP>:8080"
 

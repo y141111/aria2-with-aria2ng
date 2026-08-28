@@ -4,6 +4,7 @@ set -e
 echo "====================================="
 echo "启动 aria2-with-aria2ng 容器"
 echo "下载目录挂载: /Downloads:/downloads"
+echo "BT/DHT 端口: ${BT_PORT:-19101}"
 echo "====================================="
 
 # 停止删除旧容器

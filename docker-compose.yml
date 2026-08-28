@@ -6,10 +6,11 @@ services:
     ports:
       - "8080:80"
       - "6800:6800"
-      - "19101:19101"
-      - "19101:19101/udp"
+      - "${BT_PORT:-19101}:${BT_PORT:-19101}"
+      - "${BT_PORT:-19101}:${BT_PORT:-19101}/udp"
     environment:
       - RPC_SECRET=${RPC_SECRET:-}   # 不设置则不启用 RPC 密钥
+      - BT_PORT=${BT_PORT:-19101}
     volumes:
       - /Downloads:/downloads
 
