@@ -21,8 +21,7 @@ RUN touch /etc/aria2/aria2.session
 
 COPY ./aria2ng /usr/share/nginx/html
 
-RUN echo 'daemon off;' > /etc/nginx/nginx.conf && \
-    echo 'events { worker_connections 1024; }' >> /etc/nginx/nginx.conf && \
+RUN echo 'events { worker_connections 1024; }' > /etc/nginx/nginx.conf && \
     echo 'http {' >> /etc/nginx/nginx.conf && \
     echo '  include /etc/nginx/mime.types;' >> /etc/nginx/nginx.conf && \
     echo '  server {' >> /etc/nginx/nginx.conf && \
