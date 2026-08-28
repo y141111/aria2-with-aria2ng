@@ -9,7 +9,7 @@ services:
       - "19101:19101"
       - "19101:19101/udp"
     environment:
-      - RPC_SECRET=${RPC_SECRET:-MyStrongSecret123}
+      - RPC_SECRET=${RPC_SECRET:-}   # 不设置则不启用 RPC 密钥
     volumes:
       - /Downloads:/downloads
 
