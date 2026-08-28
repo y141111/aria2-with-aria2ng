@@ -9,5 +9,5 @@ services:
       - "19101:19101"
       - "19101:19101/udp"
     volumes:
-      - /home/wangyu/localdata:/downloads
+      - /Downloads:/downloads
 

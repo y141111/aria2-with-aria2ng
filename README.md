@@ -29,7 +29,7 @@
 ### 前置条件
 
 - 已安装 Docker Engine 和 Docker Compose 插件（`docker compose version` 可用）
-- 宿主机准备一个下载目录，例如 `/home/wangyu/localdata`
+- 宿主机准备一个下载目录，例如 `/Downloads`
 
 ### 1. 构建镜像
 
@@ -47,7 +47,7 @@ sudo ./start.sh
 
 启动完成后访问：`http://<宿主机IP>:8080`
 
-> `start.sh` 中下载目录写死为 `/home/wangyu/localdata`，如需修改请编辑 `docker-compose.yml` 中的 `volumes` 挂载。
+> `start.sh` 中下载目录写死为 `/Downloads`，如需修改请编辑 `docker-compose.yml` 中的 `volumes` 挂载。
 
 ## 使用说明
 
@@ -74,7 +74,7 @@ Web 界面默认会连接 **浏览器本机** 的 `localhost:6800`，所以在�
 
 ### 下载目录
 
-容器内下载目录为 `/downloads`，默认映射到宿主机 `/home/wangyu/localdata`，两者内容互通。
+容器内下载目录为 `/downloads`，默认映射到宿主机 `/Downloads`，两者内容互通。
 
 ### BT 监听端口
 
@@ -144,3 +144,7 @@ sudo docker compose down && sudo docker compose build && sudo docker compose up 
 
 - `aria2.conf` 主要基于 P3TERX 的 aria2 配置模板修改，BT tracker 与下载参数均已调优
 - `supervisord.conf` 将 aria2 与 nginx 日志重定向到 stdout/stderr，方便 `docker compose logs` 查看
+
+## 第三方声明
+
+本项目的 Web 前端 **AriaNg** 来源于 [mayswind/AriaNg](https://github.com/mayswind/AriaNg)，版本 **v1.3.14**，使用 MIT 许可证（见 `aria2ng/LICENSE`）。

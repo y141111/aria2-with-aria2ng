@@ -3,7 +3,7 @@ set -e
 
 echo "====================================="
 echo "启动 aria2-with-aria2ng 容器"
-echo "下载目录挂载: /home/wangyu/localdata:/downloads"
+echo "下载目录挂载: /Downloads:/downloads"
 echo "====================================="
 
 # 停止删除旧容器
