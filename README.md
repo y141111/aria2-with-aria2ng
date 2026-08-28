@@ -1,61 +1,89 @@
 # aria2-with-aria2ng
 
-一个基于 Docker 的一体化下载器：**aria2 + AriaNg Web 管理界面 + nginx + supervisord**。构建后即可得到一个带 Web UI 的 aria2 下载服务，开箱即用。
+一个基于 Docker 的一体化下载器：**aria2 + AriaNg Web 管理界面 + nginx + supervisord**，开箱即用，部署即得一个带 Web UI 的下载服务。
 
 ## 功能特性
 
 - **aria2** 多协议下载：HTTP/HTTPS、FTP、BT/磁力链接、Metalink
 - **AriaNg** 现代化 Web 管理界面，无需任何浏览器插件
 - **supervisord** 统一管理 aria2 与 nginx 进程，崩溃自动重启
-- 内置国内镜像源（清华 tuna + 阿里云 aliyun），并带自动重试，构建稳定
 - 已配置常用 BT 优化参数（DHT、LPD、PEX、tracker 列表等）
+- 镜像已发布到 GitHub Container Registry，无需本地编译即可部署
 
 ## 目录结构
 
 ```
 .
 ├── Dockerfile          # 构建镜像（alpine:3.20 + aria2 + nginx + supervisor）
-├── docker-compose.yml  # 容器编排配置
+├── docker-compose.yml  # 本机构建/启动编排配置
 ├── aria2.conf          # aria2 配置（含 RPC、BT、下载路径）
 ├── supervisord.conf    # supervisord 进程管理配置
-├── aria2ng/            # AriaNg 前端文件
+├── aria2ng/            # AriaNg 前端文件（v1.3.14）
 ├── ariang.zip          # AriaNg 安装包备份（构建时未使用）
-├── start.sh            # 启动容器脚本
-└── build-image.sh      # 构建镜像脚本
+├── start.sh            # 本机构建后启动容器脚本
+└── build-image.sh      # 本机构建镜像脚本
 ```
 
-## 快速开始
+---
+
+## 一、快速部署（推荐：直接用现成镜像）
+
+无需自己构建，直接拉取 GitHub Actions 自动构建好的镜像：
+
+```
+ghcr.io/y141111/aria2-with-aria2ng:latest
+```
 
 ### 前置条件
 
 - 已安装 Docker Engine 和 Docker Compose 插件（`docker compose version` 可用）
-- 宿主机准备一个下载目录，例如 `/Downloads`
+- 创建宿主机下载目录：`mkdir -p /Downloads`
 
-### 1. 构建镜像
+### 方式 A：docker compose（推荐）
 
-```bash
-sudo ./build-image.sh
+在任意目录创建 `docker-compose.yml`：
+
+```yaml
+services:
+  aria2-with-aria2ng:
+    image: ghcr.io/y141111/aria2-with-aria2ng:latest
+    container_name: aria2-with-aria2ng
+    restart: always
+    ports:
+      - "8080:80"
+      - "6800:6800"
+      - "19101:19101"
+      - "19101:19101/udp"
+    volumes:
+      - /Downloads:/downloads
 ```
 
-脚本会先 `docker compose down` 清理旧容器，再执行 `docker compose build`。
-
-### 2. 启动容器
+启动：
 
 ```bash
-sudo ./start.sh
+mkdir -p /Downloads
+docker compose up -d
+docker compose ps
 ```
 
-启动完成后访问：`http://<宿主机IP>:8080`
+### 方式 B：docker run
 
-> `start.sh` 中下载目录写死为 `/Downloads`，如需修改请编辑 `docker-compose.yml` 中的 `volumes` 挂载。
+```bash
+mkdir -p /Downloads
+docker run -d \
+  --name aria2-with-aria2ng \
+  --restart always \
+  -p 8080:80 \
+  -p 6800:6800 \
+  -p 19101:19101 \
+  -p 19101:19101/udp \
+  -v /Downloads:/downloads \
+  ghcr.io/y141111/aria2-with-aria2ng:latest
+```
 
-## 使用说明
+### 配置 RPC 连接
 
-### 连接 RPC
-
-Web 界面默认会连接 **浏览器本机** 的 `localhost:6800`，所以在服务器上访问时，需要把 RPC 地址改成服务器地址：
-
-1. 打开 `http://<宿主机IP>:8080`
+1. 浏览器打开 `http://<宿主机IP>:8080`
 2. 左侧 **AriaNg 设置** → **RPC** → **Aria2 RPC 地址** 改为：
 
    ```
@@ -68,17 +96,71 @@ Web 界面默认会连接 **浏览器本机** 的 `localhost:6800`，所以在�
    MyStrongSecret123
    ```
 
-4. 保存即可，右上角出现绿色状态即为连接成功。
+4. 保存后，右上角出现绿色状态即为连接成功。
 
-> 密钥可在 `aria2.conf` 的 `rpc-secret` 项修改（改后需重新构建镜像）。
+> 若拉取受网络限流影响，可先执行 `docker login ghcr.io` 登录一次。
+
+---
+
+## 二、本机构建（从源码编译）
+
+当你需要修改 `aria2.conf`、`Dockerfile` 等配置后自己构建镜像时，使用本仓库的自带脚本。
+
+### 前置条件
+
+- 已安装 Docker Engine 和 Docker Compose 插件
+- 已安装 `git`
+
+### 1. 获取源码
+
+```bash
+git clone https://github.com/y141111/aria2-with-aria2ng.git
+cd aria2-with-aria2ng
+```
+
+### 2. 构建镜像
+
+```bash
+sudo ./build-image.sh
+```
+
+脚本会先 `docker compose down` 清理旧容器，再执行 `docker compose build`。
+
+> `Dockerfile` 已内置国内镜像源（清华 tuna + 阿里云 aliyun）和重试机制，构建更稳定。
+
+### 3. 启动容器
+
+```bash
+sudo ./start.sh
+```
+
+### 4. 使用
+
+访问 `http://<宿主机IP>:8080`，并按上节「配置 RPC 连接」设置 RPC 地址与密钥。
+
+> 说明：本项目配了 GitHub Actions（`.github/workflows/docker-build.yml`），每次推送到 `main` 分支都会自动构建并通过 CI 推送到 GHCR。因此日常使用不需要本地构建，直接用一章的方式部署即可。
+
+---
+
+## 使用说明
 
 ### 下载目录
 
-容器内下载目录为 `/downloads`，默认映射到宿主机 `/Downloads`，两者内容互通。
+容器内下载目录为 `/downloads`，默认映射到宿主机 `/Downloads`，内容互通。修改挂载请编辑 compose 文件中的 `volumes`。
 
 ### BT 监听端口
 
-`19101`（TCP + UDP）用于 BT/DHT 数据交换，已在 `docker-compose.yml` 中映射，勿在防火墙中屏蔽。
+`19101`（TCP + UDP）用于 BT/DHT 数据交换，已在端口映射中放开，勿在防火墙中屏蔽。
+
+### 修改 RPC 密钥
+
+编辑 `aria2.conf` 的 `rpc-secret`，然后重新构建并启动：
+
+```bash
+sudo docker compose down && sudo docker compose build && sudo docker compose up -d
+```
+
+> 若想改为「快速部署」模式使用，需将 `docker-compose.yml` 中的 `build: .` 换成 `image: ghcr.io/y141111/aria2-with-aria2ng:latest` 并推送到 GitHub 让 CI 重新构建。
 
 ## 端口说明
 
@@ -91,11 +173,7 @@ Web 界面默认会连接 **浏览器本机** 的 `localhost:6800`，所以在�
 ## 常用命令
 
 ```bash
-# 构建镜像
-sudo ./build-image.sh
-
-# 启动（前台）与查看状态
-docker compose up
+# 查看运行状态
 docker compose ps
 
 # 查看日志
@@ -106,39 +184,39 @@ docker compose restart
 
 # 停止并删除容器
 docker compose down
+
+# 更新到最新镜像（快速部署模式）
+docker compose pull && docker compose up -d
 ```
 
 ## 常见问题
 
 ### 构建失败：`temporary error (try again later)`
 
-多发生在 `apk update && apk add` 步骤，是构建容器访问镜像源网络波动所致。当前方案已内置多源（tuna + aliyun）和 5 次重试，一般重跑一次即可；若持续失败，手动验证源连通性后调整 `Dockerfile` 中的镜像源地址。
+多发生在 `apk update && apk add` 步骤，是构建容器访问镜像源网络波动所致。`Dockerfile` 已内置多源（tuna + aliyun）和 5 次重试，重跑一次即可；若持续失败，手动验证源连通性后调整 `Dockerfile` 中的镜像源地址。
+
+### `nginx: [emerg] "daemon" directive is duplicate`
+
+旧版本镜像的 bug，已修复。请重新拉取 `latest`（`docker compose pull`）或重新构建镜像。
 
 ### 页面样式/图标显示异常
 
-确认没有改动过 `Dockerfile` 中 `include /etc/nginx/mime.types;` 一行，缺少它会导致 nginx 按流式返回静态文件。
+确认 `Dockerfile` 中保留了 `include /etc/nginx/mime.types;` 一行，缺少它会导致 nginx 按流式返回静态文件。
 
 ### 下载文件无法保存
 
-检查目标目录是否存在且有写权限，并确认 `docker-compose.yml` 的 `volumes` 挂载路径正确。
-
-### 如何修改 RPC 密钥
-
-编辑 `aria2.conf` 的 `rpc-secret`，然后重新构建镜像：
-
-```bash
-sudo docker compose down && sudo docker compose build && sudo docker compose up -d
-```
+检查宿主机挂载的下载目录是否存在且有写权限，并确认 compose 的 `volumes` 路径正确。
 
 ## 技术栈
 
 | 组件 | 说明 |
 | --- | --- |
 | 基础镜像 | `alpine:3.20` |
-| aria2 | 下载引擎，以 daemon 由 supervisord 拉起 |
+| aria2 | 下载引擎，由 supervisord 拉起 |
 | nginx | 托管 AriaNg 静态页面 |
 | supervisord | 进程管理（aria2c + nginx） |
-| 前端 | AriaNg（aria-ng） |
+| 前端 | AriaNg v1.3.14 |
+| CI/CD | GitHub Actions → GHCR |
 
 ## 配置参考
 
